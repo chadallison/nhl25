@@ -4,161 +4,163 @@ NHL 2025
 ------------------------------------------------------------------------
 
 ``` r
-tic()
+team_hex = data.frame(
+  team_abbr = c("ANA", "BOS", "BUF", "CAR", "CBJ", "CGY", "CHI", "COL",
+                "DAL", "DET", "EDM", "FLA", "LAK", "MIN", "MTL", "NJD",
+                "NSH", "NYI", "NYR", "OTT", "PHI", "PIT", "SEA", "SJS",
+                "STL", "TBL", "TOR", "UTA", "VAN", "VGK", "WPG", "WSH"),
+  team_hex = c("#F47A38", "#FFB81C", "#002F87", "#CC0000",
+               "#041E42", "#C8102E", "#CF0A2C", "#6F263D",
+               "#006847", "#CE1126", "#041E42", "#C8102E",
+               "#A2AAAD", "#154734", "#AF1E2D", "#CE1126",
+               "#FFB81C", "#00539B", "#0038A8", "#C8102E",
+               "#F74902", "#FCB514", "#99D9D9", "#006D75",
+               "#002F87", "#002868", "#00205B", "#71AFE5",
+               "#00843D", "#B4975A", "#041E42", "#041E42")
+)
+```
 
+``` r
+url = "https://api-web.nhle.com/v1/standings/now"
+response = GET(url)
+data = content(response, as = "text", encoding = "UTF-8") |> fromJSON()
+
+standings = data$standings |>
+  as.data.frame() |>
+  clean_names() |>
+  mutate(city_name = place_name$default,
+         team_name = team_common_name$default,
+         team_abbr = team_abbrev$default) |>
+  inner_join(team_hex, by = "team_abbr") |>
+  select(city_name, team_name, team_abbr, team_logo, team_hex,
+         conference_name, division_name,
+         games_played, goal_differential, goal_against, goal_for,
+         home_wins, home_losses, home_ot_losses,
+         home_goal_differential, home_goals_against, home_goals_for,
+         road_wins, road_losses, road_ot_losses,
+         road_goal_differential, road_goals_against, road_goals_for,
+         wins, losses, ot_losses, points) |>
+  mutate(gfpg = goal_for / games_played,
+         gapg = goal_against / games_played)
+```
+
+``` r
+standings |>
+  ggplot(aes(gfpg, gapg)) +
+  geom_point(aes(col = team_abbr), shape = "square", size = 4, show.legend = F) +
+  scale_color_manual(values = team_hex$team_hex) +
+  ggrepel::geom_text_repel(aes(label = team_abbr), size = 3) +
+  geom_vline(xintercept = mean(standings$gfpg), linetype = "dashed", alpha = 0.25) +
+  geom_hline(yintercept = mean(standings$gapg), linetype = "dashed", alpha = 0.25) +
+  labs(x = "Goals Scored per Game", y = "Goals Allowed per Game", title = "Season-long goals scored/allowed per game") +
+  scale_x_continuous(breaks = seq(0, 5, by = 0.1)) +
+  scale_y_continuous(breaks = seq(0, 5, by = 0.1))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+
+``` r
+standings |>
+  mutate(py = (goal_for ^ 2) / (goal_for ^ 2 + goal_against ^ 2)) |>
+  ggplot(aes(points, py)) +
+  geom_point(aes(col = team_abbr), shape = "square", size = 4, show.legend = F) +
+  geom_line(stat = "smooth", formula = y ~ x, method = "loess", linetype = "dashed", alpha = 0.5) +
+  ggrepel::geom_text_repel(aes(label = team_abbr), size = 3, max.overlaps = 32) +
+  scale_color_manual(values = team_hex$team_hex) +
+  scale_x_continuous(breaks = seq(0, 100, by = 5)) +
+  scale_y_continuous(breaks = seq(0, 1, by = 0.05), labels = scales::percent) +
+  labs(x = "Points", y = "Pythagorean win percentage",
+       title = "Team points vs. pythagorean win percentage",
+       subtitle = "Teams above/below dashed line are better/worse than their record per PWP")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+
+### new work
+
+``` r
 start_date = as.Date("2024-10-01")
 end_date = as.Date("2025-04-15")
 games = list()
 current_date = start_date
 
 while (current_date <= end_date) {
-  url = paste0("https://api-web.nhle.com/v1/schedule/", format(current_date, "%Y-%m-%d"))
-  response = GET(url)
-  data = content(response, "parsed")
-
-  if (status_code(response) == 200) {
-    game_week = data$gameWeek
-    for (game_day in game_week) {
-      for (game in game_day$games) {
-        if (game$gameType == 2) {
-          utc_time = game$startTimeUTC
-          if (!is.null(utc_time)) {
-            utc_time_obj = with_tz(ymd_hms(utc_time), tzone = "UTC")
-            game_date = format(with_tz(utc_time_obj, tzone = "US/Eastern"), "%Y-%m-%d")
-          } else {
-            game_date = NA
-          }
-
-          home_score = as.integer(game$homeTeam$score)
-          away_score = as.integer(game$awayTeam$score)
-
-          games = append(games, list(list(
-            game_id = game$id,
-            game_date = game_date,
-            home_team = game$homeTeam$abbrev,
-            away_team = game$awayTeam$abbrev,
-            home_score = home_score,
-            away_score = away_score,
-            total_score = home_score + away_score,
-            venue = game$venue$default
-          )))
-  }}}}
-  current_date = current_date + 1
+    url = paste0("https://api-web.nhle.com/v1/schedule/", format(current_date, "%Y-%m-%d"))
+    response = GET(url)
+    
+    if (status_code(response) == 200) {
+        data = content(response, as = "parsed", type = "application/json")
+        game_week = data$gameWeek
+        
+        if (!is.null(game_week)) {
+            for (game_day in game_week) {
+                for (game in game_day$games) {
+                    if (game$gameType == 2) {
+                        utc_time = game$startTimeUTC
+                        
+                        if (!is.null(utc_time)) {
+                            utc_time_obj = ymd_hms(utc_time, tz = "UTC")
+                            game_date = format(with_tz(utc_time_obj, "America/New_York"), "%Y-%m-%d")
+                        } else {
+                            game_date = NA
+                        }
+                        
+                        home_score = as.integer(game$homeTeam$score %||% 0)
+                        away_score = as.integer(game$awayTeam$score %||% 0)
+                        
+                        game_outcome = game$gameOutcome
+                        overtime = ifelse(!is.null(game_outcome) && game_outcome$lastPeriodType %in% c("OT", "SO"), TRUE, FALSE)
+                        
+                        games = append(games, list(data.frame(
+                            game_id = game$id,
+                            game_date = game_date,
+                            home_team = game$homeTeam$abbrev,
+                            away_team = game$awayTeam$abbrev,
+                            home_score = home_score,
+                            away_score = away_score,
+                            total_score = home_score + away_score,
+                            overtime = overtime,
+                            venue = game$venue$default
+                        )))
+                    }
+                }
+            }
+        }
+    }
+    
+    current_date = current_date + days(1)
 }
 
-end_games_raw = bind_rows(games)
-
-end_games = end_games_raw |>
-  filter(total_score > 0) |>
-  distinct() |>
-  mutate(game_date = as_date(game_date))
-
-toc()
-```
-
-    ## 151.06 sec elapsed
-
-``` r
-end_games = end_games |>
-  mutate(win_team = if_else(home_score > away_score, home_team, away_team),
-         lose_team = if_else(home_score > away_score, away_team, home_team))
-
-win_counts = end_games |>
-  count(win_team, name = "wins")
-
-lose_counts = end_games |>
-  count(lose_team, name = "losses")
-
-team_records = left_join(win_counts, lose_counts, by = c("win_team" = "lose_team"))
-
-team_records = team_records |>
-  select(win_team, wins, losses) |>
-  rename(team = win_team) |>
-  arrange(team) |>
-  mutate(win_pct = round(wins / (wins + losses) * 100, 2))
-
-all_teams = team_records$team
+games_df = bind_rows(games) |>
+    filter(total_score > 0) |>
+    distinct() |>
+    mutate(game_date = as.Date(game_date, format = "%Y-%m-%d"))
 ```
 
 ``` r
-get_team_scores = function(tm) {
-  home = end_games |>
-    filter(home_team == tm) |>
-    select(game_date, team = home_team, score = home_score, other_score = away_score)
-  
-  away = end_games |>
-    filter(away_team == tm) |>
-    select(game_date, team = away_team, score = away_score, other_score = home_score)
-  
-  res = rbind(home, away) |>
-    arrange(game_date)
-  
-  return(res)
+all_teams = sort(unique(c(games_df$home_team, games_df$away_team)))
+
+get_team_gspg = function(tm) {
+  home = games_df |> filter(home_team == tm) |> pull(home_score)
+  away = games_df |> filter(away_team == tm) |> pull(away_score)
+  return(round(mean(c(home, away)), 3))
 }
 
-all_team_scores = data.frame()
-
-for (team in all_teams) {
-  all_team_scores = rbind(all_team_scores, get_team_scores(tm = team))
+get_team_gapg = function(tm) {
+  home = games_df |> filter(home_team == tm) |> pull(away_score)
+  away = games_df |> filter(away_team == tm) |> pull(home_score)
+  return(round(mean(c(home, away)), 3))
 }
-```
 
-``` r
-team_color_mapping = hockeyR::team_logos_colors |>
-  select(team_abbr, team_color = team_color1)
+team_gpg = data.frame(team = all_teams) |>
+  mutate(gspg = sapply(team, get_team_gspg),
+         gapg = sapply(team, get_team_gapg))
 
-team_ppg = all_team_scores |>
-  group_by(team) |>
-  summarise(gspg = mean(score),
-            gapg = mean(other_score)) |>
-  left_join(team_color_mapping, by = c("team" = "team_abbr")) |>
-  mutate(team_color = ifelse(team == "UTA", "#71AFE5", team_color))
-
-team_ppg |>
-  ggplot(aes(gspg, gapg)) +
-  geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
-  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
-  geom_vline(xintercept = mean(team_ppg$gspg), linetype = "dashed", alpha = 0.5) +
-  geom_hline(yintercept = mean(team_ppg$gapg), linetype = "dashed", alpha = 0.5) +
-  scale_color_manual(values = team_ppg$team_color) +
-  scale_x_continuous(breaks = seq(2, 5, by = 0.1)) +
-  scale_y_continuous(breaks = seq(2, 5, by = 0.1)) +
-  labs(x = "Goals Scored per Game", y = "Goals Allowed per Game",
-       title = "Scatterplot of goals scored/allowed per game by team")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
-
-``` r
-team_ppg |>
-  mutate(ss = scale(gspg),
-         as = scale(gapg),
-         ovr = round(ss - as, 2),
-         poslab = ifelse(ovr >= 0, ovr, ""),
-         neglab = ifelse(ovr < 0, ovr, ""),
-         rk = rank(-ovr),
-         team = as.character(glue("{team} ({rk})"))) |>
-  ggplot(aes(reorder(team, ovr), ovr)) +
-  geom_col(aes(fill = team), show.legend = F) +
-  geom_text(aes(label = poslab), size = 3, hjust = -0.2) +
-  geom_text(aes(label = neglab), size = 3, hjust = 1.2) +
-  scale_fill_manual(values = team_ppg$team_color) +
-  scale_y_continuous(breaks = seq(-5, 5, by = 0.5)) +
-  coord_flip() +
-  labs(x = NULL, y = "Scaled Power Rating",
-       title = "NHL Scaled Power Rankings")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
-
-``` r
-end_npr = end_games |>
-  inner_join(team_ppg, by = c("home_team" = "team")) |>
+end_npr = games_df |>
+  inner_join(team_gpg, by = c("home_team" = "team")) |>
   rename(home_gspg = gspg, home_gapg = gapg) |>
-  select(-team_color) |>
-  inner_join(team_ppg, by = c("away_team" = "team")) |>
+  inner_join(team_gpg, by = c("away_team" = "team")) |>
   rename(away_gspg = gspg, away_gapg = gapg) |>
-  select(-team_color) |>
   mutate(home_exp = (home_gspg + away_gapg) / 2,
          away_exp = (away_gspg + home_gapg) / 2,
          home_off_npr = home_score - home_exp,
@@ -186,14 +188,116 @@ team_npr = data.frame(team = all_teams) |>
 team_npr |>
   ggplot(aes(off_npr, def_npr)) +
   geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
-  ggrepel::geom_text_repel(aes(label = team), size = 3) +
-  scale_color_manual(values = team_ppg$team_color) +
+  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
   geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +
   geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
+  geom_abline(linetype = "dashed", alpha = 0.25) +
   scale_x_continuous(breaks = seq(-0.5, 0.5, by = 0.05)) +
   scale_y_continuous(breaks = seq(-0.5, 0.5, by = 0.05)) +
+  scale_color_manual(values = team_hex$team_hex) +
   labs(x = "Offensive NPR", y = "Defensive NPR",
-       title = "Naive Performance Rating by Team, 2025 NHL Season")
+       title = "Team Offensive/Defensive NPR",
+       subtitle = "Teams above/below diagonal line are better defensively/offensively")
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+
+``` r
+team_npr |>
+  inner_join(standings, by = c("team" = "team_abbr")) |>
+  ggplot(aes(points, ovr_npr)) +
+  geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
+  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
+  geom_line(stat = "smooth", formula = y ~ x, method = "lm", linetype = "dashed", alpha = 0.5) +
+  scale_color_manual(values = team_hex$team_hex) +
+  labs(x = "Points", y = "NPR", title = "Team Points vs. NPR",
+       subtitle = "Teams above/below line are better/worse than their record suggests") +
+  scale_x_continuous(breaks = seq(0, 100, by = 5)) +
+  scale_y_continuous(breaks = seq(-1, 1, by = 0.1))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+
+``` r
+get_team_off_npr_on_date = function(tm, dt) {
+  home = end_npr |> filter(game_date <= dt & home_team == tm) |> pull(home_off_npr)
+  away = end_npr |> filter(game_date <= dt & away_team == tm) |> pull(away_off_npr)
+  return(round(mean(c(home, away)), 3))
+}
+
+get_team_def_npr_on_date = function(tm, dt) {
+  home = end_npr |> filter(game_date <= dt & home_team == tm) |> pull(home_def_npr)
+  away = end_npr |> filter(game_date <= dt & away_team == tm) |> pull(away_def_npr)
+  return(round(mean(c(home, away)), 3))
+}
+
+all_szn_dates = sort(unique(end_npr$game_date))
+
+npr_on_dates = crossing(date = all_szn_dates, team = all_teams) |>
+  rowwise() |>
+  mutate(off_npr_on_date = get_team_off_npr_on_date(team, date),
+         def_npr_on_date = get_team_def_npr_on_date(team, date)) |>
+  ungroup() |>
+  filter(!is.na(off_npr_on_date) & !is.na(def_npr_on_date))
+
+npr_on_dates |>
+  mutate(roll_off = rollapply(off_npr_on_date, FUN = "mean", width = 5, align = "right", fill = NA),
+         roll_def = rollapply(def_npr_on_date, FUN = "mean", width = 5, align = "right", fill = NA)) |>
+  filter(!is.na(roll_off) & !is.na(roll_def)) |>
+  ggplot(aes(date, roll_off)) +
+  geom_line(aes(col = team), show.legend = F) +
+  scale_color_manual(values = team_hex$team_hex) +
+  labs(title = "ignore this one but it looks kinda cool i guess")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
+
+``` r
+roll_width = 10
+
+games_df |>
+  select(game_date, team = home_team, team_score = home_score, opp_score = away_score) |>
+  bind_rows(games_df |>
+  select(game_date, team = away_team, team_score = away_score, opp_score = home_score)) |>
+  arrange(team, game_date) |>
+  mutate(roll_score = rollapply(team_score, width = roll_width, FUN = "mean", align = "right", fill = NA),
+         roll_allow = rollapply(opp_score, width = roll_width, FUN = "mean", align = "right", fill = NA)) |>
+  filter(!is.na(roll_score) & !is.na(roll_allow)) |>
+  mutate(py = (roll_score ^ 2) / (roll_score ^ 2 + roll_allow ^ 2)) |>
+  filter(team %in% c("CHI", "CAR", "COL", "WPG", "WSH", "TBL")) |>
+  ggplot(aes(game_date, py)) +
+  geom_line(aes(col = team), linewidth = 2, show.legend = T) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", alpha = 0.5) +
+  scale_color_manual(values = c("red", "gold", "maroon", "lightblue", "navy", "pink")) +
+  scale_y_continuous(breaks = seq(-1, 1, by = 0.05)) +
+  labs(x = NULL, y = "Pythagorean win percentage", col = NULL,
+       title = glue("Season-long pythagorean win percentage in {roll_width}-game rolling windows"))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+``` r
+path = "C:/Users/chadr/Downloads/dg_rankings_17feb2025.csv"
+
+dg = read_csv(path, show_col_types = F) |>
+  select(player = player_name, tour = primary_tour, dg_rank, dg_index) |>
+  mutate(dg_rank = as.integer(dg_rank))
+
+today_nice = paste0(as.character(month(Sys.Date(), label = T, abbr = T)), " ", day(Sys.Date()), ", ", year(Sys.Date()))
+
+dg |>
+  mutate(tour = ifelse(tour == "PGA Tour", tour, "Other"),
+         tour = factor(tour, levels = c("PGA Tour", "Other"))) |>
+  slice_max(dg_index, n = 25, with_ties = F) |>
+  ggplot(aes(reorder(player, dg_index), dg_index)) +
+  geom_col(aes(fill = tour), show.legend = T) +
+  geom_text(aes(label = round(dg_index, 2)), size = 3, hjust = -0.25) +
+  scale_fill_manual(values = c("#617861", "#bf8383")) +
+  coord_flip(ylim = c(0, max(dg$dg_index) * 1.025)) +
+  scale_y_continuous(breaks = seq(0, 5, by = 0.25)) +
+  labs(x = NULL, y = "DG Index", fill = NULL,
+       title = glue("Data Golf Top 25 as of {today_nice}")) +
+  theme(legend.position = "right")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
