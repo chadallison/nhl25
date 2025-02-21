@@ -291,6 +291,44 @@ games_df |>
 ```
 
 
+```{r}
+diff_df = games_df |>
+  select(game_date, team = home_team, team_score = home_score, opp_score = away_score) |>
+  bind_rows(games_df |>
+  select(game_date, team = away_team, team_score = away_score, opp_score = home_score)) |>
+  arrange(team, game_date) |>
+  group_by(team) |>
+  mutate(game_num = row_number()) |>
+  ungroup() |>
+  inner_join(npr_on_dates, by = c("game_date" = "date", "team")) |>
+  mutate(ovr_npr_on_date = off_npr_on_date + def_npr_on_date) |>
+  group_by(team) |>
+  mutate(lag10 = lag(ovr_npr_on_date, n = 10, default = NA)) |>
+  ungroup() |>
+  filter(!is.na(lag10)) |>
+  group_by(team) |>
+  slice_max(game_num, n = 1) |>
+  ungroup() |>
+  mutate(diff = ovr_npr_on_date - lag10) |>
+  arrange(desc(diff))
+
+diff_df |>
+  ggplot(aes(x = reorder(paste0(team, " (", round(diff, 2), ")"), ovr_npr_on_date), 
+             xend = reorder(paste0(team, " (", round(diff, 2), ")"), ovr_npr_on_date), 
+             y = lag10, yend = ovr_npr_on_date, col = diff)) + 
+  geom_segment(linewidth = 3, show.legend = F) +
+  geom_text(aes(y = ovr_npr_on_date, 
+                label = ifelse(diff > 0, "→", ifelse(diff == 0, "=" , ""))), 
+            size = 4, hjust = -0.2, vjust = 0.25, color = "black", alpha = 0.5) +  
+  geom_text(aes(y = ovr_npr_on_date, 
+                label = ifelse(diff < 0, "←", ifelse(diff == 0, "=" , ""))), 
+            size = 4, hjust = 1.2, vjust = 0.25, color = "black", alpha = 0.5) +  
+  coord_flip() +
+  labs(x = NULL, y = "Change in NPR",
+       title = "Team NPR Trends in Past Ten Games") +
+  scale_y_continuous(breaks = seq(-5, 5, by = 0.1)) +
+  scale_color_gradient(low = "indianred3", high = "springgreen4")
+```
 
 
 
