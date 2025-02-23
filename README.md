@@ -303,11 +303,11 @@ diff_df |>
              y = lag10, yend = ovr_npr_on_date, col = diff)) + 
   geom_segment(linewidth = 3, show.legend = F) +
   geom_text(aes(y = ovr_npr_on_date, 
-                label = ifelse(diff > 0, "→", ifelse(diff == 0, "=" , ""))), 
-            size = 4, hjust = -0.2, vjust = 0.25, color = "black", alpha = 0.5) +  
+                label = ifelse(diff >= 0, "→", "")), 
+            size = 4, hjust = -0.2, vjust = 0.25, color = "black", alpha = 0.75) +  
   geom_text(aes(y = ovr_npr_on_date, 
-                label = ifelse(diff < 0, "←", ifelse(diff == 0, "=" , ""))), 
-            size = 4, hjust = 1.2, vjust = 0.25, color = "black", alpha = 0.5) +  
+                label = ifelse(diff <= 0, "←", "")), 
+            size = 4, hjust = 1.2, vjust = 0.25, color = "black", alpha = 0.75) +  
   coord_flip() +
   labs(x = NULL, y = "Change in NPR",
        title = "Team NPR Trends in Past Ten Games") +
@@ -316,29 +316,3 @@ diff_df |>
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
-``` r
-path = "C:/Users/chadr/Downloads/dg_rankings_17feb2025.csv"
-
-dg = read_csv(path, show_col_types = F) |>
-  select(player = player_name, tour = primary_tour, dg_rank, dg_index) |>
-  mutate(dg_rank = as.integer(dg_rank))
-
-today_nice = paste0(as.character(month(Sys.Date(), label = T, abbr = T)), " ", day(Sys.Date()), ", ", year(Sys.Date()))
-
-dg |>
-  mutate(tour = ifelse(tour == "PGA Tour", tour, "Other"),
-         tour = factor(tour, levels = c("PGA Tour", "Other"))) |>
-  slice_max(dg_index, n = 25, with_ties = F) |>
-  ggplot(aes(reorder(player, dg_index), dg_index)) +
-  geom_col(aes(fill = tour), show.legend = T) +
-  geom_text(aes(label = round(dg_index, 2)), size = 3, hjust = -0.25) +
-  scale_fill_manual(values = c("#617861", "#bf8383")) +
-  coord_flip(ylim = c(0, max(dg$dg_index) * 1.025)) +
-  scale_y_continuous(breaks = seq(0, 5, by = 0.25)) +
-  labs(x = NULL, y = "DG Index", fill = NULL,
-       title = glue("Data Golf Top 25 as of {today_nice}")) +
-  theme(legend.position = "right")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
