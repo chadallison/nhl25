@@ -392,3 +392,91 @@ sl_npr_trends |>
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
+
+``` r
+team_gpg |>
+  mutate(gspg_scaled = scale(gspg),
+         gapg_scaled = scale(gapg),
+         full = gspg_scaled - gapg_scaled) |>
+  arrange(desc(full))
+```
+
+    ##    team  gspg  gapg  gspg_scaled gapg_scaled       full
+    ## 1   WPG 3.586 2.379  1.835264942 -1.89463350  3.7298984
+    ## 2   WSH 3.702 2.561  2.210444117 -1.35468706  3.5651312
+    ## 3   TBL 3.589 2.750  1.844967851 -0.79397344  2.6389413
+    ## 4   DAL 3.333 2.526  1.016986223 -1.45852291  2.4755091
+    ## 5   NJD 3.085 2.475  0.214879021 -1.60982659  1.8247056
+    ## 6   VGK 3.276 2.776  0.832630939 -0.71683824  1.5494692
+    ## 7   CAR 3.281 2.807  0.848802455 -0.62486934  1.4736718
+    ## 8   FLA 3.328 2.879  1.000814707 -0.41126415  1.4120789
+    ## 9   EDM 3.298 2.895  0.903785610 -0.36379633  1.2675819
+    ## 10  LAK 2.927 2.564 -0.296140890 -1.34578684  1.0496460
+    ## 11  TOR 3.158 2.825  0.450983157 -0.57146804  1.0224512
+    ## 12  COL 3.186 3.034  0.541543648  0.04858035  0.4929633
+    ## 13  MIN 2.930 2.842 -0.286437980 -0.52103348  0.2345955
+    ## 14  CBJ 3.316 3.281  0.962003068  0.78136480  0.1806383
+    ## 15  OTT 2.807 2.825 -0.684257278 -0.57146804 -0.1127892
+    ## 16  NYR 3.018 3.140 -0.001819296  0.36305465 -0.3648739
+    ## 17  BUF 3.255 3.400  0.764710571  1.13440671 -0.3696961
+    ## 18  DET 2.947 3.140 -0.231454825  0.36305465 -0.5945095
+    ## 19  NYI 2.768 2.964 -0.810395104 -0.15909136 -0.6513037
+    ## 20  UTA 2.810 3.034 -0.674554368  0.04858035 -0.7231347
+    ## 21  VAN 2.754 3.000 -0.855675349 -0.05228877 -0.8033866
+    ## 22  SEA 2.915 3.186 -0.334952529  0.49952463 -0.8344772
+    ## 23  STL 2.759 3.034 -0.839503833  0.04858035 -0.8880842
+    ## 24  CGY 2.696 2.982 -1.043264937 -0.10569007 -0.9375749
+    ## 25  BOS 2.741 3.190 -0.897721291  0.51139158 -1.4091129
+    ## 26  PHI 2.897 3.362 -0.393169987  1.02167064 -1.4148406
+    ## 27  MTL 2.947 3.439 -0.231454825  1.25010952 -1.4815643
+    ## 28  ANA 2.571 3.071 -1.447552841  0.15834968 -1.6059025
+    ## 29  NSH 2.607 3.304 -1.331117925  0.84959979 -2.1807177
+    ## 30  PIT 2.881 3.627 -0.444918839  1.80785639 -2.2527752
+    ## 31  CHI 2.667 3.526 -1.137059731  1.50821579 -2.6452755
+    ## 32  SJS 2.559 3.746 -1.486364480  2.16089830 -3.6472628
+
+``` r
+team_win_pct = standings |>
+  transmute(team_abbr, win_pct = round(wins / (wins + losses) * 100, 2))
+
+team_results = games_df |>
+  select(team = home_team, opp = away_team, score = home_score, opp_score = away_score) |>
+  bind_rows(games_df |>
+  select(team = away_team, opp = home_team, score = away_score, opp_score = home_score)) |>
+  inner_join(team_win_pct, by = c("team" = "team_abbr")) |>
+  rename(team_win_pct = win_pct) |>
+  inner_join(team_win_pct, by = c("opp" = "team_abbr")) |>
+  rename(opp_win_pct = win_pct)
+
+get_team_above_500_win_pct = function(tm) {
+  f_games = team_results |> filter(team == tm & opp_win_pct >= 50)
+  wins = f_games |> filter(score > opp_score)
+  return(round(nrow(wins) / nrow(f_games) * 100, 2))
+}
+
+get_team_below_500_win_pct = function(tm) {
+  f_games = team_results |> filter(team == tm & opp_win_pct < 50)
+  wins = f_games |> filter(score > opp_score)
+  return(round(nrow(wins) / nrow(f_games) * 100, 2))
+}
+
+team_500_wp = data.frame(team = all_teams) |>
+  mutate(above500 = sapply(team, get_team_above_500_win_pct),
+         below500 = sapply(team, get_team_below_500_win_pct))
+
+team_500_wp |>
+  ggplot(aes(above500, below500)) +
+  geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
+  geom_vline(xintercept = 50, linetype = "dashed", alpha = 0.5) +
+  geom_hline(yintercept = 50, linetype = "dashed", alpha = 0.5) +
+  geom_abline(linetype = "dashed", alpha = 0.25) +
+  scale_color_manual(values = team_hex$team_hex) +
+  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
+  labs(x = "Win Percentage vs. Teams with Above .500 Record",
+       y = "Win Percentage vs. Teams with Below .500 Record",
+       title = "Records vs. Above/Below .500 Opponents") +
+  scale_x_continuous(breaks = seq(0, 100, by = 5)) +
+  scale_y_continuous(breaks = seq(0, 100, by = 5))
+```
+
+![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
