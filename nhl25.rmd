@@ -226,7 +226,7 @@ team_npr |>
   ggplot(aes(points, ovr_npr)) +
   geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
   ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
-  geom_line(stat = "smooth", formula = y ~ x, method = "lm", linetype = "dashed", alpha = 0.5) +
+  geom_line(stat = "smooth", formula = y ~ x, method = "loess", linetype = "dashed", alpha = 0.5) +
   scale_color_manual(values = team_hex$team_hex) +
   labs(x = "Points", y = "NPR", title = "Team Points vs. NPR",
        subtitle = "Teams above/below line are better/worse than their record suggests") +
