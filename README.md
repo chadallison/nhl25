@@ -59,23 +59,6 @@ standings |>
 
 ![](README_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
 
-``` r
-standings |>
-  mutate(py = (goal_for ^ 2) / (goal_for ^ 2 + goal_against ^ 2)) |>
-  ggplot(aes(points, py)) +
-  geom_point(aes(col = team_abbr), shape = "square", size = 4, show.legend = F) +
-  geom_line(stat = "smooth", formula = y ~ x, method = "loess", linetype = "dashed", alpha = 0.5) +
-  ggrepel::geom_text_repel(aes(label = team_abbr), size = 3, max.overlaps = 32) +
-  scale_color_manual(values = team_hex$team_hex) +
-  scale_x_continuous(breaks = seq(0, 100, by = 5)) +
-  scale_y_continuous(breaks = seq(0, 1, by = 0.05), labels = scales::percent) +
-  labs(x = "Points", y = "Pythagorean win percentage",
-       title = "Team points vs. pythagorean win percentage",
-       subtitle = "Teams above/below dashed line are better/worse than their record per PWP")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
-
 ### new work
 
 ``` r
@@ -87,29 +70,24 @@ current_date = start_date
 while (current_date <= end_date) {
     url = paste0("https://api-web.nhle.com/v1/schedule/", format(current_date, "%Y-%m-%d"))
     response = GET(url)
-    
     if (status_code(response) == 200) {
         data = content(response, as = "parsed", type = "application/json")
         game_week = data$gameWeek
-        
         if (!is.null(game_week)) {
             for (game_day in game_week) {
                 for (game in game_day$games) {
                     if (game$gameType == 2) {
                         utc_time = game$startTimeUTC
-                        
                         if (!is.null(utc_time)) {
                             utc_time_obj = ymd_hms(utc_time, tz = "UTC")
                             game_date = format(with_tz(utc_time_obj, "America/New_York"), "%Y-%m-%d")
                         } else {
                             game_date = NA
                         }
-                        
                         home_score = as.integer(game$homeTeam$score %||% 0)
                         away_score = as.integer(game$awayTeam$score %||% 0)
                         game_outcome = game$gameOutcome
                         overtime = ifelse(!is.null(game_outcome) && game_outcome$lastPeriodType %in% c("OT", "SO"), TRUE, FALSE)
-                        
                         games = append(games, list(data.frame(
                             game_id = game$id,
                             game_date = game_date,
@@ -120,13 +98,7 @@ while (current_date <= end_date) {
                             total_score = home_score + away_score,
                             overtime = overtime,
                             venue = game$venue$default
-                        )))
-                    }
-                }
-            }
-        }
-    }
-    
+                        )))}}}}}
     current_date = current_date + days(1)
 }
 
@@ -134,6 +106,8 @@ games_df = bind_rows(games) |>
     filter(total_score > 0) |>
     distinct() |>
     mutate(game_date = as.Date(game_date, format = "%Y-%m-%d"))
+
+write_csv(games_df, "data/games_data.csv")
 ```
 
 ``` r
@@ -199,23 +173,7 @@ team_npr |>
        subtitle = "Teams above/below diagonal line are better defensively/offensively")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
-
-``` r
-team_npr |>
-  inner_join(standings, by = c("team" = "team_abbr")) |>
-  ggplot(aes(points, ovr_npr)) +
-  geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
-  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
-  geom_line(stat = "smooth", formula = y ~ x, method = "loess", linetype = "dashed", alpha = 0.5) +
-  scale_color_manual(values = team_hex$team_hex) +
-  labs(x = "Points", y = "NPR", title = "Team Points vs. NPR",
-       subtitle = "Teams above/below line are better/worse than their record suggests") +
-  scale_x_continuous(breaks = seq(0, 100, by = 5)) +
-  scale_y_continuous(breaks = seq(-1, 1, by = 0.1))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-6-1.png)<!-- -->
 
 ``` r
 get_team_off_npr_on_date = function(tm, dt) {
@@ -239,43 +197,6 @@ npr_on_dates = crossing(date = all_szn_dates, team = all_teams) |>
   ungroup() |>
   filter(!is.na(off_npr_on_date) & !is.na(def_npr_on_date))
 
-npr_on_dates |>
-  mutate(roll_off = rollapply(off_npr_on_date, FUN = "mean", width = 5, align = "right", fill = NA),
-         roll_def = rollapply(def_npr_on_date, FUN = "mean", width = 5, align = "right", fill = NA)) |>
-  filter(!is.na(roll_off) & !is.na(roll_def)) |>
-  ggplot(aes(date, roll_off)) +
-  geom_line(aes(col = team), show.legend = F) +
-  scale_color_manual(values = team_hex$team_hex) +
-  labs(title = "ignore this one but it looks kinda cool i guess")
-```
-
-![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
-
-``` r
-roll_width = 10
-
-games_df |>
-  select(game_date, team = home_team, team_score = home_score, opp_score = away_score) |>
-  bind_rows(games_df |>
-  select(game_date, team = away_team, team_score = away_score, opp_score = home_score)) |>
-  arrange(team, game_date) |>
-  mutate(roll_score = rollapply(team_score, width = roll_width, FUN = "mean", align = "right", fill = NA),
-         roll_allow = rollapply(opp_score, width = roll_width, FUN = "mean", align = "right", fill = NA)) |>
-  filter(!is.na(roll_score) & !is.na(roll_allow)) |>
-  mutate(py = (roll_score ^ 2) / (roll_score ^ 2 + roll_allow ^ 2)) |>
-  filter(team %in% c("CHI", "CAR", "COL", "WPG", "WSH", "TBL")) |>
-  ggplot(aes(game_date, py)) +
-  geom_line(aes(col = team), linewidth = 2, show.legend = T) +
-  geom_hline(yintercept = 0.5, linetype = "dashed", alpha = 0.5) +
-  scale_color_manual(values = c("red", "gold", "maroon", "lightblue", "navy", "pink")) +
-  scale_y_continuous(breaks = seq(-1, 1, by = 0.05)) +
-  labs(x = NULL, y = "Pythagorean win percentage", col = NULL,
-       title = glue("Season-long pythagorean win percentage in {roll_width}-game rolling windows"))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
-
-``` r
 diff_df = games_df |>
   select(game_date, team = home_team, team_score = home_score, opp_score = away_score) |>
   bind_rows(games_df |>
@@ -314,30 +235,7 @@ diff_df |>
   scale_color_manual(values = team_hex$team_hex)
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-11-1.png)<!-- -->
-
-``` r
-games_df |>
-  transmute(team = home_team, home_margin = home_score - away_score) |>
-  group_by(team) |>
-  summarise(avg_home_margin = mean(home_margin)) |>
-  inner_join(games_df |>
-  transmute(team = away_team, away_margin = away_score - home_score) |>
-  group_by(team) |>
-  summarise(avg_away_margin = mean(away_margin)), by = "team") |>
-  ggplot(aes(avg_home_margin, avg_away_margin)) +
-  geom_point(aes(col = team), shape = "square", size = 4, show.legend = F) +
-  geom_vline(xintercept = 0, linetype = "dashed", alpha = 0.5) +
-  geom_hline(yintercept = 0, linetype = "dashed", alpha = 0.5) +
-  scale_color_manual(values = team_hex$team_hex) +
-  ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
-  labs(x = "Avg. Home Margin", y = "Avg. Road Margin",
-       title = "Home Ice Adantage") +
-  scale_x_continuous(breaks = seq(-2, 2, by = 0.25)) +
-  scale_y_continuous(breaks = seq(-2, 2, by = 0.25))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-12-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 end_npr |>
@@ -355,12 +253,12 @@ end_npr |>
   scale_color_manual(values = team_hex$team_hex) +
   ggrepel::geom_text_repel(aes(label = team), size = 3, max.overlaps = 32) +
   labs(x = "Avg. Home NPR", y = "Avg. Road NPR",
-       title = "Home Ice Merchants") +
+       title = "Home vs. Away NPR") +
   scale_x_continuous(breaks = seq(-2, 2, by = 0.25)) +
   scale_y_continuous(breaks = seq(-2, 2, by = 0.25))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-12-2.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-8-1.png)<!-- -->
 
 ``` r
 end_npr = end_npr |>
@@ -390,49 +288,7 @@ sl_npr_trends |>
        caption = paste0(month(Sys.Date(), label = T, abbr = F), " ", day(Sys.Date()), ", ", year(Sys.Date())))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)<!-- -->
-
-``` r
-team_gpg |>
-  mutate(gspg_scaled = scale(gspg),
-         gapg_scaled = scale(gapg),
-         full = gspg_scaled - gapg_scaled) |>
-  arrange(desc(full))
-```
-
-    ##    team  gspg  gapg gspg_scaled gapg_scaled       full
-    ## 1   WPG 3.531 2.312  1.70138282 -2.06240126  3.7637841
-    ## 2   WSH 3.619 2.619  1.99616495 -1.17063058  3.1667955
-    ## 3   TBL 3.613 2.661  1.97606617 -1.04862937  3.0246955
-    ## 4   DAL 3.435 2.581  1.37980231 -1.28101262  2.6608149
-    ## 5   VGK 3.355 2.710  1.11181855 -0.90629464  2.0181132
-    ## 6   FLA 3.317 2.730  0.98452627 -0.84819883  1.8327251
-    ## 7   CAR 3.175 2.746  0.50885510 -0.80172218  1.3105773
-    ## 8   COL 3.317 2.952  0.98452627 -0.20333534  1.1878616
-    ## 9   NJD 2.969 2.562 -0.18120308 -1.33620363  1.1550006
-    ## 10  EDM 3.226 2.935  0.67969474 -0.25271677  0.9324115
-    ## 11  TOR 3.194 2.903  0.57250124 -0.34567007  0.9181713
-    ## 12  LAK 2.817 2.700 -0.69037222 -0.93534254  0.2449703
-    ## 13  CBJ 3.339 3.306  1.05822180  0.82496051  0.2332613
-    ## 14  NYR 3.048 3.000  0.08343088 -0.06390539  0.1473363
-    ## 15  OTT 2.852 2.885 -0.57312933 -0.39795630 -0.1751730
-    ## 16  MIN 2.825 2.889 -0.66357384 -0.38633714 -0.2772367
-    ## 17  STL 2.906 3.000 -0.39224029 -0.06390539 -0.3283349
-    ## 18  UTA 2.841 2.968 -0.60997709 -0.15685869 -0.4531184
-    ## 19  BUF 3.213 3.508  0.63614738  1.41172819 -0.7755808
-    ## 20  NYI 2.754 2.984 -0.90140943 -0.11038204 -0.7910274
-    ## 21  VAN 2.758 3.016 -0.88801024 -0.01742874 -0.8705815
-    ## 22  MTL 3.000 3.339 -0.07735937  0.92081859 -0.9981780
-    ## 23  SEA 2.952 3.286 -0.23814963  0.76686469 -1.0050143
-    ## 24  DET 2.873 3.206 -0.50278359  0.53448145 -1.0372650
-    ## 25  CGY 2.629 2.935 -1.32013405 -0.25271677 -1.0674173
-    ## 26  PHI 2.921 3.365 -0.34199333  0.99634315 -1.3383365
-    ## 27  ANA 2.661 3.097 -1.21294055  0.21785929 -1.4307998
-    ## 28  BOS 2.688 3.188 -1.12249603  0.48219522 -1.6046913
-    ## 29  CHI 2.794 3.508 -0.76741755  1.41172819 -2.1791457
-    ## 30  NSH 2.645 3.339 -1.26653730  0.92081859 -2.1873559
-    ## 31  PIT 2.831 3.708 -0.64347506  1.99268629 -2.6361614
-    ## 32  SJS 2.641 3.766 -1.27993649  2.16116414 -3.4411006
+![](README_files/figure-gfm/unnamed-chunk-9-1.png)<!-- -->
 
 ``` r
 team_win_pct = standings |>
@@ -478,4 +334,4 @@ team_500_wp |>
   scale_y_continuous(breaks = seq(0, 100, by = 5))
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
