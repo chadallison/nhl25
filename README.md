@@ -108,6 +108,7 @@ games_df = bind_rows(games) |>
     mutate(game_date = as.Date(game_date, format = "%Y-%m-%d"))
 
 write_csv(games_df, "data/games_data.csv")
+# games_df = read_csv("data/games_data.csv", show_col_types = F)
 ```
 
 ``` r
