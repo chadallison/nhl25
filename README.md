@@ -336,3 +336,21 @@ team_500_wp |>
 ```
 
 ![](README_files/figure-gfm/unnamed-chunk-10-1.png)<!-- -->
+
+### modeling
+
+``` r
+modeling_base_data = games_df |>
+  transmute(home_team, home_score, away_team, away_score,
+            home_win = ifelse(home_score > away_score, 1, 0)) |>
+  inner_join(team_gpg, by = c("home_team" = "team")) |>
+  rename(home_gspg = gspg, home_gapg = gapg) |>
+  inner_join(team_gpg, by = c("away_team" = "team")) |>
+  rename(away_gspg = gspg, away_gapg = gapg) |>
+  inner_join(team_npr, by = c("home_team" = "team")) |>
+  rename(home_off_npr = off_npr, home_def_npr = def_npr) |>
+  select(-ovr_npr) |>
+  inner_join(team_npr, by = c("away_team" = "team")) |>
+  rename(away_off_npr = off_npr, away_def_npr = def_npr) |>
+  select(-c(home_team, home_score, away_team, away_score, ovr_npr))
+```
