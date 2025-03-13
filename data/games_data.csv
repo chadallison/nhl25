@@ -1033,3 +1033,7 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021033,2025-03-11,ANA,WSH,4,7,11,FALSE,Honda Center
 2024021034,2025-03-11,LAK,NYI,4,1,5,FALSE,Crypto.com Arena
 2024021035,2025-03-11,SJS,NSH,2,3,5,FALSE,SAP Center at San Jose
+2024021036,2025-03-12,DET,BUF,7,3,10,FALSE,Little Caesars Arena
+2024021037,2025-03-12,CGY,VAN,3,4,7,TRUE,Scotiabank Saddledome
+2024021038,2025-03-12,UTA,ANA,3,2,5,FALSE,Delta Center
+2024021039,2025-03-12,SEA,MTL,5,4,9,TRUE,Climate Pledge Arena

@@ -354,3 +354,45 @@ modeling_base_data = games_df |>
   rename(away_off_npr = off_npr, away_def_npr = def_npr) |>
   select(-c(home_team, home_score, away_team, away_score, ovr_npr))
 ```
+
+``` r
+library(caret)
+```
+
+    ## Loading required package: lattice
+
+    ## 
+    ## Attaching package: 'caret'
+
+    ## The following object is masked from 'package:httr':
+    ## 
+    ##     progress
+
+    ## The following object is masked from 'package:purrr':
+    ## 
+    ##     lift
+
+``` r
+modeling_base_data$home_win = as.factor(modeling_base_data$home_win)
+set.seed(831)
+train_index = createDataPartition(modeling_base_data$home_win, p = 0.8, list = FALSE)
+train_data = modeling_base_data[train_index, ]
+test_data = modeling_base_data[-train_index, ]
+model = glm(home_win ~ ., data = train_data, family = binomial)
+test_probs = predict(model, test_data, type = "response")
+test_preds = ifelse(test_probs > 0.5, 1, 0)
+test_preds = as.factor(test_preds)
+test_data$home_win = as.factor(test_data$home_win)
+accuracy = mean(test_preds == test_data$home_win)
+print(paste0("Accuracy: ", round(accuracy * 100, 2), "%"))
+```
+
+    ## [1] "Accuracy: 60.68%"
+
+``` r
+conf_matrix = confusionMatrix(test_preds, test_data$home_win, positive = "1")
+f1_score = conf_matrix$byClass["F1"]
+print(paste0("F1 Score: ", round(f1_score * 100, 2), "%"))
+```
+
+    ## [1] "F1 Score: 66.39%"
