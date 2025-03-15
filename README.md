@@ -387,7 +387,7 @@ accuracy = mean(test_preds == test_data$home_win)
 print(paste0("Accuracy: ", round(accuracy * 100, 2), "%"))
 ```
 
-    ## [1] "Accuracy: 62.2%"
+    ## [1] "Accuracy: 60.77%"
 
 ``` r
 conf_matrix = confusionMatrix(test_preds, test_data$home_win, positive = "1")
@@ -395,7 +395,7 @@ f1_score = conf_matrix$byClass["F1"]
 print(paste0("F1 Score: ", round(f1_score * 100, 2), "%"))
 ```
 
-    ## [1] "F1 Score: 68.77%"
+    ## [1] "F1 Score: 64.04%"
 
 ### pga strokes gained
 

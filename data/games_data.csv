@@ -1046,3 +1046,9 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021046,2025-03-13,MIN,NYR,2,3,5,TRUE,Xcel Energy Center
 2024021047,2025-03-13,LAK,WSH,3,0,3,FALSE,Crypto.com Arena
 2024021048,2025-03-13,SJS,CHI,4,2,6,FALSE,SAP Center at San Jose
+2024021049,2025-03-14,CAR,DET,4,2,6,FALSE,Lenovo Center
+2024021050,2025-03-14,NYI,EDM,1,2,3,TRUE,UBS Arena
+2024021051,2025-03-14,WPG,DAL,4,1,5,FALSE,Canada Life Centre
+2024021052,2025-03-14,CGY,COL,2,4,6,FALSE,Scotiabank Saddledome
+2024021053,2025-03-14,ANA,NSH,2,1,3,FALSE,Honda Center
+2024021054,2025-03-14,SEA,UTA,4,2,6,FALSE,Climate Pledge Arena
