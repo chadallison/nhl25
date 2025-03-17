@@ -387,7 +387,7 @@ accuracy = mean(test_preds == test_data$home_win)
 print(paste0("Accuracy: ", round(accuracy * 100, 2), "%"))
 ```
 
-    ## [1] "Accuracy: 60.77%"
+    ## [1] "Accuracy: 64.79%"
 
 ``` r
 conf_matrix = confusionMatrix(test_preds, test_data$home_win, positive = "1")
@@ -395,60 +395,4 @@ f1_score = conf_matrix$byClass["F1"]
 print(paste0("F1 Score: ", round(f1_score * 100, 2), "%"))
 ```
 
-    ## [1] "F1 Score: 64.04%"
-
-### pga strokes gained
-
-``` r
-ott = read_csv("C:/Users/chadr/Downloads/sg_ott.csv", show_col_types = F) |> clean_names()
-app = read_csv("C:/Users/chadr/Downloads/sg_app.csv", show_col_types = F) |> clean_names()
-arg = read_csv("C:/Users/chadr/Downloads/sg_arg.csv", show_col_types = F) |> clean_names()
-putt = read_csv("C:/Users/chadr/Downloads/sg_putt.csv", show_col_types = F) |> clean_names()
-scoring = read_csv("C:/Users/chadr/Downloads/scoring_avg.csv", show_col_types = F) |> clean_names()
-
-stats = ott |> distinct(player, sg_ott = avg) |>
-  inner_join(app |> distinct(player, sg_app = avg), by = "player") |>
-  inner_join(arg |> distinct(player, sg_arg = avg), by = "player") |>
-  inner_join(putt |> distinct(player, sg_putt = avg), by = "player") |>
-  inner_join(scoring |> distinct(player, scoring_avg = avg), by = "player")
-```
-
-``` r
-paste0("SG OTT ~ Scoring Avg: ", round(cor(stats$sg_ott, stats$scoring_avg), 3))
-```
-
-    ## [1] "SG OTT ~ Scoring Avg: -0.502"
-
-``` r
-paste0("SG APP ~ Scoring Avg: ", round(cor(stats$sg_app, stats$scoring_avg), 3))
-```
-
-    ## [1] "SG APP ~ Scoring Avg: -0.677"
-
-``` r
-paste0("SG ARG ~ Scoring Avg: ", round(cor(stats$sg_arg, stats$scoring_avg), 3))
-```
-
-    ## [1] "SG ARG ~ Scoring Avg: -0.26"
-
-``` r
-paste0("SG Putt ~ Scoring Avg: ", round(cor(stats$sg_putt, stats$scoring_avg), 3))
-```
-
-    ## [1] "SG Putt ~ Scoring Avg: -0.324"
-
-``` r
-data.frame(category = c("SG: OTT", "SG: APP", "SG: ARG", "SG: Putt"),
-           value = c(round(cor(stats$sg_ott, stats$scoring_avg), 3), round(cor(stats$sg_app, stats$scoring_avg), 3),
-                     round(cor(stats$sg_arg, stats$scoring_avg), 3), round(cor(stats$sg_putt, stats$scoring_avg), 3))) |>
-  mutate(category = factor(category, levels = c("SG: OTT", "SG: APP", "SG: ARG", "SG: Putt"))) |>
-  ggplot(aes(category, -value)) +
-  geom_col(fill = "#718b70") +
-  geom_text(aes(label = -value), size = 3.5, vjust = -0.3) +
-  labs(x = "Strokes Gained Category", y = "Correlation with Scoring Avg.",
-       title = "Correlation between strokes gained categories and scoring average",
-       subtitle = "Note that all correlations are negative but are being portrayed as positive here") +
-  scale_y_continuous(breaks = seq(0, 1, by = 0.05))
-```
-
-![](README_files/figure-gfm/unnamed-chunk-15-1.png)<!-- -->
+    ## [1] "F1 Score: 69.88%"
