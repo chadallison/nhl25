@@ -1070,3 +1070,8 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021068,2025-03-16,STL,ANA,7,2,9,FALSE,Enterprise Center
 2024021071,2025-03-16,VAN,UTA,1,3,4,FALSE,Rogers Arena
 2024021072,2025-03-16,SEA,WPG,2,3,5,TRUE,Climate Pledge Arena
+2024021073,2025-03-17,BOS,BUF,2,3,5,TRUE,TD Garden
+2024021074,2025-03-17,TBL,PHI,2,0,2,FALSE,Amalie Arena
+2024021075,2025-03-17,CBJ,NJD,1,2,3,FALSE,Nationwide Arena
+2024021076,2025-03-17,TOR,CGY,6,2,8,FALSE,Scotiabank Arena
+2024021077,2025-03-17,MIN,LAK,3,1,4,FALSE,Xcel Energy Center
