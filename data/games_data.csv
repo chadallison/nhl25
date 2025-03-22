@@ -1100,3 +1100,4 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021100,2025-03-20,UTA,BUF,5,2,7,FALSE,Delta Center
 2024021101,2025-03-20,VGK,BOS,5,1,6,FALSE,T-Mobile Arena
 2024021102,2025-03-20,SJS,CAR,1,3,4,FALSE,SAP Center at San Jose
+2024021103,2025-03-21,PIT,CBJ,6,3,9,FALSE,PPG Paints Arena
