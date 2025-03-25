@@ -1122,3 +1122,7 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021122,2025-03-23,VGK,TBL,4,2,6,FALSE,T-Mobile Arena
 2024021123,2025-03-23,ANA,CAR,2,5,7,FALSE,Honda Center
 2024021124,2025-03-23,LAK,BOS,7,2,9,FALSE,Crypto.com Arena
+2024021125,2025-03-24,NJD,VAN,3,4,7,TRUE,Prudential Center
+2024021126,2025-03-24,NYI,CBJ,3,4,7,TRUE,UBS Arena
+2024021127,2025-03-24,DAL,MIN,3,0,3,FALSE,American Airlines Center
+2024021128,2025-03-24,UTA,DET,1,5,6,FALSE,Delta Center
