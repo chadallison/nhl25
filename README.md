@@ -387,7 +387,7 @@ accuracy = mean(test_preds == test_data$home_win)
 print(paste0("Accuracy: ", round(accuracy * 100, 2), "%"))
 ```
 
-    ## [1] "Accuracy: 62.83%"
+    ## [1] "Accuracy: 63.6%"
 
 ``` r
 conf_matrix = confusionMatrix(test_preds, test_data$home_win, positive = "1")
@@ -395,17 +395,4 @@ f1_score = conf_matrix$byClass["F1"]
 print(paste0("F1 Score: ", round(f1_score * 100, 2), "%"))
 ```
 
-    ## [1] "F1 Score: 69.78%"
-
-``` r
-# library(httr)
-# library(jsonlite)
-# library(glue)
-# library(lubridate)
-# 
-# url = "https://t.lasership.com/Track/1LS7295N000819438/json"
-# res = GET(url)
-# data = content(res, type = "application/json")
-# del_dt = as.Date(data$EstimatedDeliveryDate)
-# glue("Estimated delivery date: {weekdays(del_dt)} {month(del_dt, label = T, abbr = F)} {day(del_dt)}, {year(del_dt)}")
-```
+    ## [1] "F1 Score: 71.28%"

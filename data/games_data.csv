@@ -1136,3 +1136,7 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021136,2025-03-25,COL,DET,5,2,7,FALSE,Ball Arena
 2024021137,2025-03-25,CGY,SEA,4,3,7,TRUE,Scotiabank Saddledome
 2024021138,2025-03-25,LAK,NYR,3,1,4,FALSE,Crypto.com Arena
+2024021139,2025-03-26,NYI,VAN,2,5,7,FALSE,UBS Arena
+2024021140,2025-03-26,CHI,NJD,3,5,8,FALSE,United Center
+2024021141,2025-03-26,EDM,DAL,3,4,7,FALSE,Rogers Place
+2024021142,2025-03-26,ANA,BOS,6,2,8,FALSE,Honda Center
