@@ -1175,3 +1175,7 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021175,2025-03-30,CAR,NYI,6,4,10,FALSE,Lenovo Center
 2024021176,2025-03-30,ANA,TOR,2,3,5,FALSE,Honda Center
 2024021177,2025-03-30,LAK,SJS,8,1,9,FALSE,Crypto.com Arena
+2024021178,2025-03-31,NJD,MIN,3,2,5,TRUE,Prudential Center
+2024021179,2025-03-31,PHI,NSH,2,1,3,FALSE,Wells Fargo Center
+2024021180,2025-03-31,COL,CGY,2,3,5,TRUE,Ball Arena
+2024021181,2025-03-31,SEA,DAL,1,3,4,FALSE,Climate Pledge Arena
