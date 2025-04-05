@@ -1203,3 +1203,6 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021203,2025-04-03,CGY,ANA,4,1,5,FALSE,Scotiabank Saddledome
 2024021204,2025-04-03,VGK,WPG,0,4,4,FALSE,T-Mobile Arena
 2024021205,2025-04-03,SJS,EDM,2,3,5,FALSE,SAP Center at San Jose
+2024021206,2025-04-04,DET,CAR,5,3,8,FALSE,Little Caesars Arena
+2024021207,2025-04-04,WSH,CHI,5,3,8,FALSE,Capital One Arena
+2024021208,2025-04-04,NYI,MIN,3,1,4,FALSE,UBS Arena
