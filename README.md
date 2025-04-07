@@ -359,6 +359,8 @@ modeling_base_data = games_df |>
 library(caret)
 ```
 
+    ## Warning: package 'caret' was built under R version 4.4.1
+
     ## Loading required package: lattice
 
     ## 
@@ -387,7 +389,11 @@ accuracy = mean(test_preds == test_data$home_win)
 print(paste0("Accuracy: ", round(accuracy * 100, 2), "%"))
 ```
 
+<<<<<<< HEAD
     ## [1] "Accuracy: 61.22%"
+=======
+    ## [1] "Accuracy: 62.7%"
+>>>>>>> 1c8dbeebf131eb841c9328de8ee25022a7c26c00
 
 ``` r
 conf_matrix = confusionMatrix(test_preds, test_data$home_win, positive = "1")
@@ -395,4 +401,8 @@ f1_score = conf_matrix$byClass["F1"]
 print(paste0("F1 Score: ", round(f1_score * 100, 2), "%"))
 ```
 
+<<<<<<< HEAD
     ## [1] "F1 Score: 68.01%"
+=======
+    ## [1] "F1 Score: 69.77%"
+>>>>>>> 1c8dbeebf131eb841c9328de8ee25022a7c26c00
