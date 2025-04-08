@@ -1219,7 +1219,6 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021219,2025-04-05,UTA,WPG,4,1,5,FALSE,Delta Center
 2024021220,2025-04-05,CGY,VGK,2,3,5,TRUE,Scotiabank Saddledome
 2024021221,2025-04-05,SJS,SEA,1,5,6,FALSE,SAP Center at San Jose
-<<<<<<< HEAD
 2024021222,2025-04-06,NYI,WSH,4,1,5,FALSE,UBS Arena
 2024021223,2025-04-06,MIN,DAL,3,2,5,TRUE,Xcel Energy Center
 2024021224,2025-04-06,OTT,CBJ,4,0,4,FALSE,Canadian Tire Centre
@@ -1228,5 +1227,8 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021227,2025-04-06,CHI,PIT,3,1,4,FALSE,United Center
 2024021228,2025-04-06,NSH,MTL,1,2,3,FALSE,Bridgestone Arena
 2024021229,2025-04-06,VAN,VGK,2,3,5,FALSE,Rogers Arena
-=======
->>>>>>> 1c8dbeebf131eb841c9328de8ee25022a7c26c00
+2024021230,2025-04-07,NYR,TBL,1,5,6,FALSE,Madison Square Garden
+2024021231,2025-04-07,WPG,STL,3,1,4,FALSE,Canada Life Centre
+2024021232,2025-04-07,ANA,EDM,3,2,5,FALSE,Honda Center
+2024021233,2025-04-07,LAK,SEA,1,2,3,FALSE,Crypto.com Arena
+2024021234,2025-04-07,SJS,CGY,2,3,5,FALSE,SAP Center at San Jose
