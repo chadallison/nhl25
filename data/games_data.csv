@@ -1242,3 +1242,8 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021242,2025-04-08,DAL,VAN,5,6,11,TRUE,American Airlines Center
 2024021243,2025-04-08,UTA,SEA,7,1,8,FALSE,Delta Center
 2024021244,2025-04-08,COL,VGK,3,2,5,TRUE,Ball Arena
+2024021245,2025-04-09,TBL,TOR,3,4,7,TRUE,Amalie Arena
+2024021246,2025-04-09,NYR,PHI,5,8,13,FALSE,Madison Square Garden
+2024021247,2025-04-09,MIN,SJS,8,7,15,TRUE,Xcel Energy Center
+2024021248,2025-04-09,EDM,STL,4,3,7,FALSE,Rogers Place
+2024021249,2025-04-09,ANA,CGY,4,3,7,TRUE,Honda Center
