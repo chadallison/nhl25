@@ -1282,3 +1282,9 @@ game_id,game_date,home_team,away_team,home_score,away_score,total_score,overtime
 2024021282,2025-04-13,WPG,EDM,1,4,5,FALSE,Canada Life Centre
 2024021283,2025-04-13,CGY,SJS,5,2,7,FALSE,Scotiabank Saddledome
 2024021284,2025-04-13,ANA,COL,2,4,6,FALSE,Honda Center
+2024021285,2025-04-14,MTL,CHI,3,4,7,TRUE,Centre Bell
+2024021286,2025-04-14,DET,DAL,6,4,10,FALSE,Little Caesars Arena
+2024021287,2025-04-14,FLA,NYR,3,5,8,FALSE,Amerant Bank Arena
+2024021288,2025-04-14,NSH,UTA,3,7,10,FALSE,Bridgestone Arena
+2024021289,2025-04-14,EDM,LAK,0,5,5,FALSE,Rogers Place
+2024021290,2025-04-14,VAN,SJS,2,1,3,TRUE,Rogers Arena
